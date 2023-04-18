@@ -40,7 +40,7 @@ def collect_image_infos(path, dir_names=None):
             image_id = int(image_path_split[len(image_path_split) - 1].split('.')[0])
 
             img_info = {
-                'filename': image_path,
+                'file_name': image_path,
                 'width': img_pillow.width,
                 'height': img_pillow.height,
                 'id': image_id
@@ -56,6 +56,9 @@ def collect_image_annos(path, categories, dir_names=None, label_dir_name='label3
     img_annos = []
 
     images_generator = mmcv.scandir(path, recursive=True)
+
+    annotation_id = 0 # TODO: Was ist das genau für ne id???
+
     for image_path in mmcv.track_iter_progress(list(images_generator)):
         if (dir_names is None or (
                 dir_names is not None
@@ -73,8 +76,6 @@ def collect_image_annos(path, categories, dir_names=None, label_dir_name='label3
 
                     coco_anno = cvt_a2d2_to_coco_anno(a2d2_anno, categories)
 
-                    id = int(box_id.split('_')[1]) #TODO: Was ist das für ne id???
-
                     img_anno = {
                         'segmentation': [], #TODO
                         'area': coco_anno['area'],
@@ -82,10 +83,11 @@ def collect_image_annos(path, categories, dir_names=None, label_dir_name='label3
                         'category_id': coco_anno['category_id'],
                         'bbox': coco_anno['bbox'],
                         'image_id': image_id,
-                        'id': id
+                        'id': annotation_id
                     }
 
                     img_annos.append(img_anno)
+                    annotation_id += 1
 
     return img_annos
 
@@ -113,7 +115,7 @@ def cvt_categories(classes_path):
     categories = []
     with open(classes_path) as f:
         classes = json.load(f)
-        id = 1
+        id = 0
         appended_categories = []
 
         for category in classes.values():
@@ -164,7 +166,9 @@ def main():
     print(f'save json file: {save_path}')
 
     # 4 store images
-    # TODO: Undistort -> Vorsicht beim erneuten abspeichern, Pfade der Bilder sind bereits in coco_info['images'] hinterlegt und sollten angepasst werden
+    # TODO: Undistort
+    #  -> Vorsicht beim erneuten abspeichern, Pfade der Bilder sind bereits in coco_info['images'] hinterlegt und sollten angepasst werden
+    #  -> Kann aber evtl. vernachlässigt werden
 
 
 if __name__ == '__main__':
