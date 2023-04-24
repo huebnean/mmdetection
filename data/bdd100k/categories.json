@@ -1,0 +1,54 @@
+{
+    "categories": [
+        {
+            "id": 0,
+            "name": "pedestrian",
+            "supercategory": "person"
+        },
+        {
+            "id": 1,
+            "name": "rider",
+            "supercategory": "person"
+        },
+        {
+            "id": 2,
+            "name": "car",
+            "supercategory": "vehicle"
+        },
+        {
+            "id": 3,
+            "name": "truck",
+            "supercategory": "vehicle"
+        },
+        {
+            "id": 4,
+            "name": "bus",
+            "supercategory": "vehicle"
+        },
+        {
+            "id": 5,
+            "name": "train",
+            "supercategory": "vehicle"
+        },
+        {
+            "id": 6,
+            "name": "motorcycle",
+            "supercategory": "vehicle"
+        },
+        {
+            "id": 7,
+            "name": "bicycle",
+            "supercategory": "vehicle"
+        },
+        {
+            "id": 8,
+            "name": "traffic light",
+            "supercategory": "traffic light"
+        },
+        {
+            "id": 9,
+            "name": "traffic sign",
+            "supercategory": "traffic sign"
+        }
+    ]
+}
