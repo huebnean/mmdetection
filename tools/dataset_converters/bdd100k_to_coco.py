@@ -1,9 +1,19 @@
+'''
+
+This script converts bdd100k data to coco format.
+
+Example: python bdd100k_to_coco.py data/bdd100k/ -lp bdd100k_labels/labels/bdd100k_labels_images_val.json -ip bdd100k_images/images/100k/val -od data/bdd100k/coco
+
+'''
+
+
 import json
 import argparse
 import os
 from pathlib import Path
 
 import mmcv
+import cv2
 from PIL import Image
 
 def parse_args():
@@ -15,7 +25,7 @@ def parse_args():
     parser.add_argument('-c', '--classes', help='BDD100k classes file name', type=str, default='categories.json')
     parser.add_argument('-u', '--undistort-images', action='store_true')
     parser.add_argument('-od', '--out-dir', help='output path')
-    parser.add_argument('-of', '--out-file', help='output file name')
+    parser.add_argument('-of', '--out-file', help='output file name', default='data.json')
     parser.add_argument(
         '--out-format',
         default='coco',
@@ -23,6 +33,29 @@ def parse_args():
         help='output format, "coco" indicates coco annotation format')
     args = parser.parse_args()
     return args
+
+
+def cvt_bdd100k_to_coco_anno(bdd100k_label, categories):
+
+    category_id = None
+    for category in categories:
+        if category['name'].lower() == bdd100k_label['category'].lower():
+            category_id = category['id']
+
+    coco_annotations = {
+            "category_id": category_id,
+            "bbox": [bdd100k_label["box2d"]['x1'], bdd100k_label["box2d"]['y1'],
+                     bdd100k_label["box2d"]['x2'] - bdd100k_label["box2d"]['x1'],
+                     bdd100k_label["box2d"]['y2'] - bdd100k_label["box2d"]['y1']],  # [x, y, width, height]
+            "area": (bdd100k_label["box2d"]['x2'] - bdd100k_label["box2d"]['x1']) * (bdd100k_label["box2d"]['y2'] - bdd100k_label["box2d"]['y1']),
+            "iscrowd": 0, #TODO
+            "occluded": int(bdd100k_label['attributes']['occluded']),
+            "truncated": int(bdd100k_label['attributes']['truncated']),
+            "trafficLightColor": bdd100k_label['attributes']['trafficLightColor'],
+            "id": int(bdd100k_label['id'])
+        }
+
+    return coco_annotations
 
 def collect_image_infos_and_annos(base_path, label_path, image_dir, categories):
     img_infos = []
@@ -36,7 +69,13 @@ def collect_image_infos_and_annos(base_path, label_path, image_dir, categories):
     for anno_data in annos:
         image_path = os.path.join(base_path, image_dir, anno_data['name'])
 
-        if os.path.exists(image_path):
+        try:
+            image = cv2.imread(image_path)
+        except:
+            print("Image with the following path does not exist: ", image_path)
+            continue
+
+        if os.path.exists(image_path) and image is not None:
             img_pillow = Image.open(image_path)
 
             img_info = {
@@ -47,13 +86,18 @@ def collect_image_infos_and_annos(base_path, label_path, image_dir, categories):
             }
 
             img_infos.append(img_info)
-            image_id += 1
 
             if 'labels' in anno_data:
                 img_annos += collect_image_annos(anno_data['labels'], image_id, categories)
 
+            image_id += 1
+
+            print("Image with the following path appended: ", image_path)
+
         else:
             print("Image with the following path does not exist: ", image_path)
+
+    print("Images in dataset: ", image_id)
 
     return img_infos, img_annos
 
@@ -62,6 +106,9 @@ def collect_image_annos(labels, image_id, categories):
     img_annos = []
 
     for bdd100k_label in labels:
+        if 'box2d' not in bdd100k_label:
+            continue
+        # TODO: else (poly2d)
         coco_anno = cvt_bdd100k_to_coco_anno(bdd100k_label, categories)
 
         img_anno = {
@@ -126,7 +173,7 @@ def main():
 
     if args.out_dir is None:
         base = Path(__file__).parent.parent.parent
-        out_dir = os.path.join(base, 'data\\bdd100k')
+        out_dir = os.path.join(base, 'data', 'bdd100k')
     else:
         out_dir = args.out_dir
 
