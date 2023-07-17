@@ -1,7 +1,7 @@
 import json
 import os
 
-CLASSES_TO_CONVERT = {0: 0, 2: 1, 6: 2, 9: 3}
+CLASSES_TO_CONVERT = {0: 0, 2: 1, 3: 1, 4: 1, 6: 2, 9: 3}
 
 def convert(source, dest):
 
@@ -19,6 +19,7 @@ def convert(source, dest):
         if annotation["image_id"] not in annotations:
             annotations[annotation["image_id"]] = list()
 
+        print(annotation["category_id"])
         if annotation["category_id"] not in CLASSES_TO_CONVERT.keys():
             continue
 
@@ -44,4 +45,4 @@ def convert(source, dest):
     train_txt.close()
     f.close()
 
-convert(r"/home/hubnera/PycharmProjects/mmdetection/data/bdd100k/annotations/bdd100k_coco_val.json", r"/home/hubnera/PycharmProjects/mmdetection/data/darknet")
+convert(r"/home/hubnera/PycharmProjects/mmdetection/data/bdd100k/annotations/bdd100k_coco_train.json", r"/home/hubnera/PycharmProjects/mmdetection/data/darknet_train")
