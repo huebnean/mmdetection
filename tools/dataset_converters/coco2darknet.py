@@ -32,15 +32,20 @@ def convert(source, dest):
 
     for image in data['images']:
         print(image["file_name"])
+
+        if image["id"] not in annotations:
+            print("No annotations, skip image.")
+            continue
+
         dir, filename = os.path.split(image["file_name"])
         img_name = filename.split(".")[0]
-
-        train_txt.write(image["file_name"] + "\n")
 
         anno_txt = open(f"{dest}/data/{img_name}.txt", "w")
         for annotation in annotations[image["id"]]:
             anno_txt.write(annotation)
         anno_txt.close()
+
+        train_txt.write(image["file_name"] + "\n")
 
     train_txt.close()
     f.close()
