@@ -10,7 +10,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='Convert A2D2 annotations to mmdetection format')
     parser.add_argument('a2d2_path', help='A2D2 dataset path')
-    parser.add_argument('-l', '--label-dir-name', help='A2D2 dataset path', type=str, default='label3D')
+    parser.add_argument('-ld', '--label-dir-name', help='A2D2 dataset path', type=str, default='camera_frontcenter')
+    parser.add_argument('-id', '--image-dir-name', help='A2D2 dataset path', type=str, default='image_undistort')
     parser.add_argument('-c', '--classes', help='A2D2 classes file name', type=str, default='class_list.json')
     parser.add_argument('-u', '--undistort-images', action='store_true')
     parser.add_argument('-dn', '--dir-names', help='Names of A2D2 folders to convert', nargs='+', type=str)
@@ -32,7 +33,7 @@ def collect_image_infos(path, dir_names=None):
         if (dir_names is None or (
                 dir_names is not None
                 and image_path.lower().startswith(dir_names))) and image_path.lower().endswith('png') and \
-                len(image_path.split('\\')) > 1 and image_path.split('\\')[1] == 'camera':
+                len(image_path.split('/')) > 1 and image_path.split('/')[1] == 'image_undistort':
             image_path = os.path.join(path, image_path)
             img_pillow = Image.open(image_path)
 
@@ -63,7 +64,7 @@ def collect_image_annos(path, categories, dir_names=None, label_dir_name='label3
         if (dir_names is None or (
                 dir_names is not None
                 and image_path.lower().startswith(dir_names))) and image_path.lower().endswith('json') and \
-                len(image_path.split('\\')) > 1 and image_path.split('\\')[1] == label_dir_name:
+                len(image_path.split('/')) > 1 and image_path.split('/')[1] == label_dir_name:
 
             anno_path = os.path.join(path, image_path)
             image_path_split = image_path.split('_')
@@ -155,7 +156,7 @@ def main():
 
     if args.out_dir is None:
         base = Path(__file__).parent.parent.parent
-        out_dir = os.path.join(base, 'data\\a2d2')
+        out_dir = os.path.join(base, 'data/a2d2')
     else:
         out_dir = args.out_dir
 
