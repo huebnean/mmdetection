@@ -1,7 +1,8 @@
 import json
 import os
 
-CLASSES_TO_CONVERT = {0: 0, 2: 1, 3: 1, 4: 1, 6: 2, 9: 3}
+CLASSES_TO_CONVERT = {0: 0}
+CLASSES = {30: 0, 13: 1}
 
 def convert(source, dest):
 
@@ -20,7 +21,7 @@ def convert(source, dest):
             annotations[annotation["image_id"]] = list()
 
         print(annotation["category_id"])
-        if annotation["category_id"] not in CLASSES_TO_CONVERT.keys():
+        if annotation["category_id"] not in CLASSES_TO_CONVERT.keys() and annotation["image_id"] not in annotations:
             continue
 
         x = (annotation["bbox"][0] + (annotation["bbox"][2] / 2)) / img_w
@@ -28,7 +29,7 @@ def convert(source, dest):
         w = annotation["bbox"][2] / img_w
         h = annotation["bbox"][3] / img_h
 
-        annotations[annotation["image_id"]].append(f"{CLASSES_TO_CONVERT[annotation['category_id']]} {x} {y} {w} {h}\n")
+        annotations[annotation["image_id"]].append(f"{CLASSES[annotation['category_id']]} {x} {y} {w} {h}\n")
 
     for image in data['images']:
         print(image["file_name"])
@@ -50,4 +51,4 @@ def convert(source, dest):
     train_txt.close()
     f.close()
 
-convert(r"/home/hubnera/PycharmProjects/mmdetection/data/bdd100k/annotations/bdd100k_coco_train.json", r"/home/hubnera/PycharmProjects/mmdetection/data/darknet_train")
+convert(r"/home/hubnera/PycharmProjects/mmdetection/data/pandaset/annotations/pandaset_in_coco.json", r"/home/hubnera/PycharmProjects/mmdetection/data/darknet_train_pandaset")
