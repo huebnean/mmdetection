@@ -255,7 +255,7 @@ class CustomDataset(Dataset):
 
         img_info = self.data_infos[idx]
         results = dict(img_info=img_info)
-        if self.proposals is not None:
+        if self.ann_file is not None:
             results['proposals'] = self.proposals[idx]
         self.pre_pipeline(results)
         return self.pipeline(results)

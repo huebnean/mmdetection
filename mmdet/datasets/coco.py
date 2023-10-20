@@ -88,6 +88,25 @@ class CocoDataset(CustomDataset):
             total_ann_ids), f"Annotation ids in '{ann_file}' are not unique!"
         return data_infos
 
+    def prepare_test_img(self, idx):
+        """Get testing data after pipeline.
+
+        Args:
+            idx (int): Index of data.
+
+        Returns:
+            dict: Testing data after pipeline with new keys introduced by \
+                pipeline.
+        """
+
+        img_info = self.data_infos[idx]
+        results = dict(img_info=img_info)
+        self.ann_info = self.get_ann_info(idx)
+        if self.ann_info is not None:
+            results['ann_info'] = self.ann_info
+        self.pre_pipeline(results)
+        return self.pipeline(results)
+
     def get_ann_info(self, idx):
         """Get COCO annotation by index.
 

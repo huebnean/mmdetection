@@ -12,7 +12,7 @@ from mmcv.cnn import fuse_conv_bn
 from mmcv.runner import (get_dist_info, init_dist, load_checkpoint,
                          wrap_fp16_model)
 
-from mmdet.apis import multi_gpu_test, single_gpu_test
+from mmdet.apis import multi_gpu_test, single_gpu_test, show_result_pyplot
 from mmdet.datasets import (build_dataloader, build_dataset,
                             replace_ImageToTensor)
 from mmdet.models import build_detector
@@ -281,6 +281,11 @@ def main():
             if args.work_dir is not None and rank == 0:
                 mmcv.dump(metric_dict, json_file)
 
+    show_result_pyplot(
+        model,
+        dataset.data_infos[5]['file_name'],
+        outputs[5]
+    )
 
 if __name__ == '__main__':
     main()
