@@ -1,13 +1,9 @@
 import gzip
 import pandaset
-import gc
 import json
 import argparse
 import os
-import pickle
-import numpy as np
 from pathlib import Path
-from matplotlib import pyplot as plt
 
 import cv2
 import mmcv
@@ -131,22 +127,30 @@ def collect_image_annos(pandaset_path, categories, image_id_dict):
     fails = 0
 
     dataset = pandaset.DataSet(pandaset_path)
+    print((dataset.sequences()))
 
     for camera_name in CAMERA_ID_TO_CAMERA_DIR.values():
         for data_idx in (dataset.sequences()):
             dataset_idx = data_idx
+            print("Start loading data - idx: ", dataset_idx)
             seq = dataset[dataset_idx]
 
             try:
-                cuboids = dataset[dataset_idx].cuboids
-                cuboids.load()
-                seq.timestamps.load()
-                seq.camera[camera_name].load()
+                seq.load()
+                cuboids = seq.cuboids
 
-            except MemoryError as e:
+                if cuboids.data == []:
+                    fails += 1
+                    print("No cuboids - idx: ", dataset_idx)
+                    continue
+
+
+            except Exception as e:
                 fails += 1
+                print("Error: No cuboids - idx: ", dataset_idx)
                 continue
 
+            print("Start converting - idx: ", dataset_idx)
             selected_camera = seq.camera[camera_name]
             for time_idx in range(len(seq.timestamps.data)):
                 pil_image = seq.camera[camera_name][time_idx]
@@ -187,7 +191,7 @@ def collect_image_annos(pandaset_path, categories, image_id_dict):
                             continue
 
                         #cv2.rectangle(img, (bb_x1, bb_y1), (bb_x2, bb_y2), (0, 255, 0), 2)
-                        print(f"{camera_name}: print {idx}. box on {time_idx}. img")
+                        #print(f"{camera_name}: print {idx}. box on {time_idx}. img")
 
                         category_id = None
                         for category in categories:
@@ -206,6 +210,9 @@ def collect_image_annos(pandaset_path, categories, image_id_dict):
                         annotation_id += 1
 
                         img_annos.append(img_anno)
+
+            dataset.unload(dataset_idx)
+            print("Sequence unloaded - ", dataset_idx)
 
                 #cv2.imshow('image', img)
                 #cv2.waitKey(0)
@@ -266,9 +273,9 @@ def main():
         out_dir = args.out_dir
 
     save_dir = os.path.join(out_dir, 'annotations')
-    mmcv.mkdir_or_exist(save_dir)
+    if not os.path.exists(save_dir): os.makedirs(save_dir)
     save_path = os.path.join(save_dir, args.out_file)
-    mmcv.dump(coco_info, save_path)
+    with open(save_path, 'w') as f: json.dump(coco_info, f)
     print(f'save json file: {save_path}')
 
     # 4 store images
