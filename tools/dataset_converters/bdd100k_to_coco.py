@@ -57,6 +57,18 @@ def cvt_bdd100k_to_coco_anno(bdd100k_label, categories):
 
     return coco_annotations
 
+def get_image_info(image_path, image_id):
+    img_pillow = Image.open(image_path)
+
+    img_info = {
+        'file_name': image_path,
+        'width': img_pillow.width,
+        'height': img_pillow.height,
+        'id': image_id
+    }
+
+    return img_info
+
 def collect_image_infos_and_annos(base_path, label_path, image_dir, categories):
     img_infos = []
     img_annos = []
@@ -76,15 +88,7 @@ def collect_image_infos_and_annos(base_path, label_path, image_dir, categories):
             continue
 
         if os.path.exists(image_path) and image is not None:
-            img_pillow = Image.open(image_path)
-
-            img_info = {
-                'file_name': image_path,
-                'width': img_pillow.width,
-                'height': img_pillow.height,
-                'id': image_id
-            }
-
+            img_info = get_image_info(image_path, image_id)
             img_infos.append(img_info)
 
             if 'labels' in anno_data:
@@ -163,7 +167,16 @@ def main():
     categories = load_categories(os.path.join(args.bdd100k_path, args.classes))
 
     # 2 load image list info and annotation info
-    img_infos, img_annos = collect_image_infos_and_annos(args.bdd100k_path, args.label_path, args.image_dir, categories)
+    if args.label_path != "":
+        img_infos, img_annos = collect_image_infos_and_annos(args.bdd100k_path, args.label_path, args.image_dir, categories)
+    else:
+        path_to_imgs = os.path.join(args.bdd100k_path, args.image_dir)
+        img_infos = []
+        image_id = 0
+        for image_path in os.listdir(path_to_imgs):
+            img_info = get_image_info(os.path.join(path_to_imgs, image_path), image_id)
+            img_infos.append(img_info)
+            image_id += 1
 
     # 3 dump
     coco_info = dict()
