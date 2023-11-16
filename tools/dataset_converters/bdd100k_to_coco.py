@@ -172,6 +172,7 @@ def main():
     else:
         path_to_imgs = os.path.join(args.bdd100k_path, args.image_dir)
         img_infos = []
+        img_annos = []
         image_id = 0
         for image_path in os.listdir(path_to_imgs):
             img_info = get_image_info(os.path.join(path_to_imgs, image_path), image_id)
