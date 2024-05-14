@@ -31,6 +31,7 @@ WORKDIR /mmdetection
 
 ENV FORCE_CUDA="1"
 RUN pip install --trusted-host pypi.org --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -e .
 
 # Expose port 8080 for communication
 EXPOSE 8080
