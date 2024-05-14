@@ -23,6 +23,9 @@ RUN pip install --trusted-host pypi.org --trusted-host download.openmmlab.com --
 # Install MMDetection
 RUN conda clean --all
 RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection
+
+COPY /src /mmdetection/docker/src
+
 WORKDIR /mmdetection
 
 
