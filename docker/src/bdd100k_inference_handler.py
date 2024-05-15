@@ -19,7 +19,7 @@ class BDD100KInference:
 
         self.bucket_name = 'bertrandt-input'
         self.bucket_manager = BucketManager(self.bucket_name, self.app)
-        self.bdd100k_categories_json_path = "src/bdd_10k_categories.json"
+        self.bdd100k_categories_json_path = "docker/src/bdd_10k_categories.json"
 
 
     def create_download_folder_tree(self):
@@ -99,7 +99,7 @@ class BDD100KInference:
         self.download_dataset_and_labels_from_bucket()
         self.convert_bdd100k_labels_to_coco()
         self.perform_inference_and_upload()
-        shutil.rmtree(self.downloads_path)
+        # shutil.rmtree(self.downloads_path)
 
 if __name__ == '__main__':
     bdd100k_inference = BDD100KInference()
