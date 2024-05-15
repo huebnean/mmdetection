@@ -37,4 +37,4 @@ RUN pip install --no-cache-dir -e .
 EXPOSE 8080
 
 # Set the default command to execute when the container starts
-CMD ["python", "src/acl_experiment_handler.py"]
+CMD ["python", "docker/src/bdd100k_inference_handler.py"]
