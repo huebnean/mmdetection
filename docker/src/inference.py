@@ -7,13 +7,13 @@ from mmdet.datasets import (build_dataloader, build_dataset,
 from mmdet.models import build_detector
 from mmdet.utils import  build_dp
 from pathlib import Path
-import json
+from train import read_classes_from_json
 
 
-DEFAULT_CONFIG='configs/faster_rcnn/faster_rcnn_r50_caffe_fpn_mstrain_3x_coco.py'
-DEFAULT_CHECKPOINT='checkpoints/faster_rcnn_r50_caffe_fpn_mstrain_3x_coco_20210526_095054-1f77628b.pth'
+DEFAULT_CONFIG='configs/yolox/yolox_tiny_8x8_300e_coco.py'
+DEFAULT_CHECKPOINT='checkpoints/yolox_tiny_8x8_300e_coco_20211124_171234-b4047906.pth'
 
-def configure_cfg(cfg, dataset_folder):
+def configure_cfg(cfg, dataset_folder, classes):
     """ Configure the base config to add the dataset folders path
 
     Args:
@@ -34,14 +34,15 @@ def configure_cfg(cfg, dataset_folder):
     # Modify dataset related settings
     test_data=dict(
             type='CocoDataset',
+            classes = classes,
             img_prefix="",
             pipeline=updated_test_pipeline,
             ann_file=dataset_folder + "/results/annotations/converted_labels.json")
     cfg.data.test = test_data
     return cfg
 
-def convert_and_save(dataset_folder, inference_results, classes):
-    """Convert  the inference results to format need for the KPI scripts and save it
+def convert_output_format(dataset_folder, inference_results, classes):
+    """Convert  the inference results to format need for the KPI scripts
 
     Args:
         dataset_folder (str): Path to the dataset folder.
@@ -59,8 +60,7 @@ def convert_and_save(dataset_folder, inference_results, classes):
                                      "confidence": float(instance[-1])})
         json_dict[img] = results_list
 
-    with open(dataset_folder + '/results/result.json', 'w') as fp:
-        json.dump(json_dict, fp)
+    return json_dict
 
 
 def inference(dataset_folder, config=DEFAULT_CONFIG, checkpoint=DEFAULT_CHECKPOINT):
@@ -73,9 +73,11 @@ def inference(dataset_folder, config=DEFAULT_CONFIG, checkpoint=DEFAULT_CHECKPOI
     # Set the device to be used for evaluation
     device='cpu'
 
+    classes = read_classes_from_json(dataset_folder + "/bdd_10k_categories.json")
+
     # Load the config
     config = mmcv.Config.fromfile(config)
-    updated_config = configure_cfg(config, dataset_folder)
+    updated_config = configure_cfg(config, dataset_folder, classes)
 
     # build the dataloader
     dataset = build_dataset(updated_config.data.test)
@@ -95,7 +97,7 @@ def inference(dataset_folder, config=DEFAULT_CONFIG, checkpoint=DEFAULT_CHECKPOI
     checkpoint = load_checkpoint(model, checkpoint, map_location=device)
 
     # Set the classes of models for inference
-    model.CLASSES = checkpoint['meta']['CLASSES']
+    model.CLASSES = classes
 
     # We need to set the model's cfg for inference
     model.cfg = updated_config
@@ -107,6 +109,7 @@ def inference(dataset_folder, config=DEFAULT_CONFIG, checkpoint=DEFAULT_CHECKPOI
 
     model = build_dp(model, device)
     outputs = single_gpu_test(model, data_loader)
-    convert_and_save(dataset_folder, outputs, checkpoint['meta']['CLASSES'])
+    converted_json = convert_output_format(dataset_folder, outputs, classes)
+    return converted_json
 
 
